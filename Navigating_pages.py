@@ -11,28 +11,19 @@ import wx
 app = wx.App()
 
 def chromedriver():
-    # File_Location = open(
-    #     "D:\\0 PYTHON EXE SQL CONNECTION & DRIVER PATH\\sberbank-ast.ru\\Location For Database & Driver.txt", "r")
-    # TXT_File_AllText = File_Location.read()
-    # Chromedriver = str(TXT_File_AllText).partition("Driver=")[2].partition("\")")[0].strip()
-    # chrome_options = Options()
-    # chrome_options.add_extension('D:\\0 PYTHON EXE SQL CONNECTION & DRIVER PATH\\sberbank-ast.ru\\Browsec-VPN.crx')  # ADD EXTENSION Browsec-VPN
-    # browser = webdriver.Chrome(executable_path=str(Chromedriver), chrome_options=chrome_options)
-    # browser = webdriver.Chrome(executable_path=str(Chromedriver))
-    browser = webdriver.Chrome(executable_path=str(f"C:\\chromedriver.exe"))
-    browser.get("""https://chrome.google.com/webstore/detail/browsec-vpn-free-and-unli/omghfjlpggmjjaagoclmmobgdodcjboh?hl=en" ping="/url?sa=t&amp;source=web&amp;rct=j&amp;url=https://chrome.google.com/webstore/detail/browsec-vpn-free-and-unli/omghfjlpggmjjaagoclmmobgdodcjboh%3Fhl%3Den&amp;ved=2ahUKEwivq8rjlcHmAhVtxzgGHZ-JBMgQFjAAegQIAhAB""")
-    for Add_Extension in browser.find_elements_by_xpath('/html/body/div[4]/div[2]/div/div/div[2]/div[2]/div'):
-        Add_Extension.click()
-        break
-    wx.MessageBox(' -_-  Add Extension and Select Proxy Between 25 SEC -_- ', 'Info', wx.OK | wx.ICON_WARNING)
-    time.sleep(25)  # WAIT UNTIL CHANGE THE MANUAL VPN SETTING
-    browser.get("http://www.sberbank-ast.ru/UnitedPurchaseList.aspx")
+    chrome_options = Options()
+    chrome_options.add_extension('C:\\BrowsecVPN.crx')
+    browser = webdriver.Chrome(executable_path=str(f"C:\\chromedriver.exe"),chrome_options=chrome_options)
     browser.maximize_window()
-    time.sleep(1)
+    # browser.get("""https://chrome.google.com/webstore/detail/browsec-vpn-free-and-unli/omghfjlpggmjjaagoclmmobgdodcjboh?hl=en" ping="/url?sa=t&amp;source=web&amp;rct=j&amp;url=https://chrome.google.com/webstore/detail/browsec-vpn-free-and-unli/omghfjlpggmjjaagoclmmobgdodcjboh%3Fhl%3Den&amp;ved=2ahUKEwivq8rjlcHmAhVtxzgGHZ-JBMgQFjAAegQIAhAB""")
+    wx.MessageBox(' -_-  Add Extension and Select Proxy Between 10 SEC -_- ', 'Info', wx.OK | wx.ICON_WARNING)
+    time.sleep(15)  # WAIT UNTIL CHANGE THE MANUAL VPN SETtING
+    browser.get("http://www.sberbank-ast.ru/UnitedPurchaseList.aspx")
+    time.sleep(5)
     for Date_wise in browser.find_elements_by_xpath('//*[@id="sortControls"]/a[2]'):
         Date_wise.click()
         break
-    time.sleep(4)
+    time.sleep(5)
     clicking_process(browser)
 
 
@@ -102,28 +93,29 @@ def clicking_process(browser):
                                     Tender_link = str(href).partition('value="')[2].partition('"')[0].strip()  # get href from outer Html
                                     Global_var.Total += 1
                                     if Tender_link != '':
-                                        commandText = "SELECT ID from sberbank_temptbl where doc_links = '" + str(Tender_link) + "'"
-                                        mycursorLocal.execute(commandText)
-                                        results = mycursorLocal.fetchall()
-                                        if len(results) > 0:
-                                            print('Duplicate Tender')
-                                            Global_var.duplicate += 1
-                                        else:
-                                            print('Live Tender')
-                                            print(Tender_link)
-                                            sql = "INSERT INTO sberbank_temptbl(doc_links)VALUES(%s)"  # Collected Link Inserting on Database
-                                            val = (str(Tender_link))
-                                            database_error = False
-                                            while database_error == False:
-                                                try:
-                                                    mycursorLocal.execute(sql, val)
-                                                    mydb_Local.commit()
-                                                    Global_var.links_Insert_On_Database += 1
-                                                    Global_var.Collected_link += 1
-                                                    database_error = True
-                                                except Exception as e:
-                                                    print('Error While Inserting Data On Database: ', str(e))
-                                                    database_error = False
+                                        if Tender_link.startswith('http://www.sberbank-ast.ru/purchaseview.aspx?') or Tender_link.startswith('https://www.sberbank-ast.ru/purchaseview.aspx?'):
+                                            commandText = "SELECT ID from sberbank_temptbl where doc_links = '" + str(Tender_link) + "'"
+                                            mycursorLocal.execute(commandText)
+                                            results = mycursorLocal.fetchall()
+                                            if len(results) > 0:
+                                                print('Duplicate Tender')
+                                                Global_var.duplicate += 1
+                                            else:
+                                                print('Live Tender')
+                                                print(Tender_link)
+                                                sql = "INSERT INTO sberbank_temptbl(doc_links)VALUES(%s)"  # Collected Link Inserting on Database
+                                                val = (str(Tender_link))
+                                                database_error = False
+                                                while database_error == False:
+                                                    try:
+                                                        mycursorLocal.execute(sql, val)
+                                                        mydb_Local.commit()
+                                                        Global_var.links_Insert_On_Database += 1
+                                                        Global_var.Collected_link += 1
+                                                        database_error = True
+                                                    except Exception as e:
+                                                        print('Error While Inserting Data On Database: ', str(e))
+                                                        database_error = False
                                     else:
                                         Global_var.Link_Empty += 1
                                 d = True
